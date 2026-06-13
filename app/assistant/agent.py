@@ -75,6 +75,13 @@ class Agent:
                     result = execute_fn(fn_name, fn_args, table_id=table_id, session_id=session_id)
                 except Exception as e:
                     result = {"error": f"执行 {fn_name} 时出错: {str(e)}"}
+                # debug：追踪 LLM 工具调用
+                try:
+                    f = open("agent_trace.log","a")
+                    f.write(f"[TOOL] turn={turn} name={fn_name} args={fn_args}\n")
+                    f.close()
+                except:
+                    pass
 
                 messages.append({
                     "role": "tool",

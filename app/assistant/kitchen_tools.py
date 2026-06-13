@@ -5,6 +5,15 @@ from app import models
 # 事件通知回调（由 routes/kitchen.py 注入）
 _on_event = None
 
+# 工具调用追踪（调试用）
+_tool_trace = []
+
+def get_tool_trace():
+    return list(_tool_trace)
+
+def clear_tool_trace():
+    _tool_trace.clear()
+
 
 def set_event_callback(fn):
     global _on_event
@@ -129,12 +138,26 @@ def get_kitchen_tools():
         {
             "type": "function",
             "function": {
+                "name": "search_menu_items",
+                "description": "按名称搜索菜品，返回菜品信息（ID、名称、价格、库存）。后厨需修改库存或查看某个具体菜品时先用此工具找到菜品ID",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "keyword": {"type": "string", "description": "搜索关键词，如'鸡'、'口水鸡'"},
+                    },
+                    "required": ["keyword"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
                 "name": "check_stock",
                 "description": "查看某个菜品的当前库存",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "item_id": {"type": "integer", "description": "菜品ID（从 get_aggregated_dishes 获取）"},
+                        "item_id": {"type": "integer", "description": "菜品ID（从 search_menu_items 或 get_aggregated_dishes 获取）"},
                     },
                     "required": ["item_id"],
                 },
@@ -175,9 +198,12 @@ def get_kitchen_tools():
 
 def execute_kitchen_tool(name, args, table_id=None, session_id=None):
     """执行厨房 LLM 发起的工具调用"""
+    _tool_trace.append({"name": name, "args": args})
     if name == "get_kitchen_dashboard":
         stats = models.get_kitchen_dashboard_stats()
         orders = models.get_kitchen_orders()
+        # 所有菜品库存清单，便于搜索
+        all_items = models.get_all_menu_items()
         return {
             "stats": {
                 "pending_orders": stats["total_pending_orders"],
@@ -194,6 +220,10 @@ def execute_kitchen_tool(name, args, table_id=None, session_id=None):
                     "created_at": o["created_at"],
                 }
                 for o in orders[:10]
+            ],
+            "all_menu_items": [
+                {"item_id": m["item_id"], "name": m["name"], "price": m["price"], "stock": m["stock"], "category": m["category_name"]}
+                for m in all_items
             ],
         }
 
@@ -297,6 +327,19 @@ def execute_kitchen_tool(name, args, table_id=None, session_id=None):
                 "message": f"已完成 {count} 道菜品出餐",
             })
         return {"ok": True, "updated_count": count, "message": f"已完成 {count} 道菜品出餐"}
+
+    elif name == "search_menu_items":
+        results = models.search_menu_items(args["keyword"])
+        return [
+            {
+                "item_id": d["item_id"],
+                "name": d["name"],
+                "price": d["price"],
+                "stock": d["stock"],
+                "category": d["category_name"],
+            }
+            for d in results
+        ]
 
     elif name == "check_stock":
         stock = models.get_item_stock(args["item_id"])

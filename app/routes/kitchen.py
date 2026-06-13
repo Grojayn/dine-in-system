@@ -169,5 +169,13 @@ def notification_stream():
     )
 
 
+@bp.route("/trace", methods=["GET"])
+def tool_trace():
+    """返回最近一次厨房 agent 的工具调用记录（调试用）"""
+    from app.assistant.kitchen_tools import get_tool_trace, clear_tool_trace
+    trace = get_tool_trace()
+    clear_tool_trace()
+    return jsonify({"trace": trace})
+
 # 注册通知回调，让厨房工具在状态变更时通知顾客
 set_event_callback(push_notification)
