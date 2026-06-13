@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}管理面板{% endblock %}
+{% block content %}
+<h3>管理面板</h3>
+<div class="row mt-4">
+    <div class="col-md-3"><div class="card bg-primary text-white"><div class="card-body text-center"><h2>{{ orders|length }}</h2><p>总订单数</p></div></div></div>
+    <div class="col-md-3"><div class="card bg-warning"><div class="card-body text-center"><h2>{{ orders|rejectattr('status', 'equalto', '已结账')|list|length }}</h2><p>进行中订单</p></div></div></div>
+    <div class="col-md-3"><div class="card bg-success text-white"><div class="card-body text-center"><h2>{{ tables|selectattr('status', 'equalto', '空闲')|list|length }}</h2><p>空闲桌位</p></div></div></div>
+    <div class="col-md-3"><div class="card bg-danger text-white"><div class="card-body text-center"><h2>{{ tables|selectattr('status', 'equalto', '已占用')|list|length }}</h2><p>占用桌位</p></div></div></div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="list-group shadow">
+            <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action active">控制面板</a>
+            <a href="{{ url_for('admin.menu_items') }}" class="list-group-item list-group-item-action">菜品管理</a>
+            <a href="{{ url_for('admin.categories') }}" class="list-group-item list-group-item-action">分类管理</a>
+            <a href="{{ url_for('admin.tables') }}" class="list-group-item list-group-item-action">桌位管理</a>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="card shadow-sm">
+            <div class="card-header"><h5 class="mb-0">全部订单</h5></div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead><tr><th>订单号</th><th>桌号</th><th>金额</th><th>状态</th><th>时间</th><th>操作</th></tr></thead>
+                    <tbody>
+                        {% for o in orders %}
+                        <tr>
+                            <td><a href="{{ url_for('admin.order_detail', order_id=o.order_id) }}">{{ o.order_number }}</a></td>
+                            <td>{{ o.table_number }}</td>
+                            <td>¥{{ "%.2f"|format(o.total_amount) }}</td>
+                            <td>
+                                {% if o.status == '已下单' %}<span class="badge bg-info">已下单</span>
+                                {% elif o.status == '制作中' %}<span class="badge bg-warning">制作中</span>
+                                {% elif o.status == '已上菜' %}<span class="badge bg-success">已上菜</span>
+                                {% else %}<span class="badge bg-secondary">已结账</span>
+                                {% endif %}
+                                {% if o.is_rushed %}<span class="badge bg-danger ms-1">加急</span>{% endif %}
+                                {% if o.note and '已取消' in o.note %}<span class="badge bg-secondary ms-1">已取消</span>{% endif %}
+                            </td>
+                            <td>{{ o.created_at[5:16] }}</td>
+                            <td>
+                                {% if o.status == '已下单' %}
+                                <form method="post" action="{{ url_for('admin.update_order_status', order_id=o.order_id) }}" style="display:inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <input type="hidden" name="status" value="制作中"><button class="btn btn-sm btn-warning">开始制作</button>
+                                </form>
+                                {% elif o.status == '制作中' %}
+                                <form method="post" action="{{ url_for('admin.update_order_status', order_id=o.order_id) }}" style="display:inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <input type="hidden" name="status" value="已上菜"><button class="btn btn-sm btn-success">确认上菜</button>
+                                </form>
+                                {% elif o.status == '已上菜' %}
+                                <form method="post" action="{{ url_for('admin.update_order_status', order_id=o.order_id) }}" style="display:inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <input type="hidden" name="status" value="已结账"><button class="btn btn-sm btn-secondary">确认结账</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

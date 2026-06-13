@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}桌位管理{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group shadow">
+            <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action">控制面板</a>
+            <a href="{{ url_for('admin.menu_items') }}" class="list-group-item list-group-item-action">菜品管理</a>
+            <a href="{{ url_for('admin.categories') }}" class="list-group-item list-group-item-action">分类管理</a>
+            <a href="{{ url_for('admin.tables') }}" class="list-group-item list-group-item-action active">桌位管理</a>
+        </div>
+        <div class="card mt-3 shadow-sm">
+            <div class="card-header"><h6 class="mb-0">添加桌位</h6></div>
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" name="action" value="add">
+                    <div class="mb-2"><input type="text" name="table_number" class="form-control" placeholder="桌号 e.g. A01" required></div>
+                    <div class="mb-2"><input type="number" name="capacity" class="form-control" placeholder="容量" value="4" required></div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">添加</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="card shadow-sm">
+            <div class="card-header"><h5 class="mb-0">桌位列表</h5></div>
+            <div class="card-body">
+                <div class="row">
+                    {% for t in tables %}
+                    <div class="col-md-3 mb-3">
+                        <div class="card {% if t.status == '空闲' %}border-success{% elif t.status == '已占用' %}border-danger{% else %}border-warning{% endif %}">
+                            <div class="card-body text-center">
+                                <h4>{{ t.table_number }}</h4>
+                                <p class="text-muted">{{ t.capacity }}人桌</p>
+                                <span class="badge {% if t.status == '空闲' %}bg-success{% elif t.status == '已占用' %}bg-danger{% else %}bg-warning{% endif %}">{{ t.status }}</span>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="editTable({{ t.table_id }}, '{{ t.table_number }}', {{ t.capacity }})">编辑</button>
+                                    <form method="post" style="display:inline" onsubmit="return confirm('确定删除?')">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="table_id" value="{{ t.table_id }}">
+                                        <button class="btn btn-sm btn-outline-danger">删除</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <form method="post">
+            <div class="modal-header"><h5>编辑桌位</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="table_id" id="edit-id">
+                <div class="mb-2"><label class="form-label">桌号</label><input type="text" name="table_number" id="edit-num" class="form-control" required></div>
+                <div class="mb-2"><label class="form-label">容量</label><input type="number" name="capacity" id="edit-cap" class="form-control" required></div>
+            </div>
+            <div class="modal-footer"><button type="submit" class="btn btn-primary">保存</button></div>
+        </form>
+    </div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function editTable(id, num, cap) {
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-num').value = num;
+    document.getElementById('edit-cap').value = cap;
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+</script>
+{% endblock %}

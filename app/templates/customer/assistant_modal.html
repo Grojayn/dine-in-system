@@ -1,0 +1,33 @@
+<!-- 智能点餐助手 — 聊天面板组件 -->
+<div id="assistant-widget">
+    <!-- 浮动气泡按钮 -->
+    <button id="assistant-toggle" class="assistant-bubble" title="点餐助手">
+        💬
+    </button>
+
+    <!-- 聊天面板 -->
+    <div id="assistant-panel" class="assistant-panel hidden">
+        <!-- 顶部标题栏 -->
+        <div class="assistant-header">
+            <span>🍽️ 小味 - 点餐助手</span>
+            <button id="assistant-close" class="assistant-close-btn">✕</button>
+        </div>
+
+        <!-- 消息列表 -->
+        <div id="assistant-messages" class="assistant-messages">
+            <div class="assistant-msg assistant-msg-left">
+                <div class="assistant-msg-content">您好！我是小味，您的点餐助手。有什么我可以帮您的吗？</div>
+            </div>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="assistant-input-area">
+            <input type="text" id="assistant-input" class="assistant-input" placeholder="输入消息..." maxlength="500">
+            <button id="assistant-send" class="assistant-send-btn">发送</button>
+        </div>
+    </div>
+</div>
+
+{% block assistant_scripts %}
+<script src="{{ url_for('static', filename='js/assistant.js') }}"></script>
+{% endblock %}

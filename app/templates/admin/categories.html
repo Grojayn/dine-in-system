@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}分类管理{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group shadow">
+            <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action">控制面板</a>
+            <a href="{{ url_for('admin.menu_items') }}" class="list-group-item list-group-item-action">菜品管理</a>
+            <a href="{{ url_for('admin.categories') }}" class="list-group-item list-group-item-action active">分类管理</a>
+            <a href="{{ url_for('admin.tables') }}" class="list-group-item list-group-item-action">桌位管理</a>
+        </div>
+        <div class="card mt-3 shadow-sm">
+            <div class="card-header"><h6 class="mb-0">添加分类</h6></div>
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" name="action" value="add">
+                    <div class="mb-2"><input type="text" name="name" class="form-control" placeholder="分类名" required></div>
+                    <div class="mb-2"><input type="number" name="sort_order" class="form-control" placeholder="排序" value="0"></div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">添加</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="card shadow-sm">
+            <div class="card-header"><h5 class="mb-0">菜品分类</h5></div>
+            <div class="card-body">
+                <table class="table">
+                    <thead><tr><th>ID</th><th>分类名</th><th>排序</th><th>操作</th></tr></thead>
+                    <tbody>
+                        {% for c in categories %}
+                        <tr>
+                            <td>{{ c.category_id }}</td>
+                            <td>{{ c.name }}</td>
+                            <td>{{ c.sort_order }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editCat({{ c.category_id }}, '{{ c.name }}', {{ c.sort_order }})">编辑</button>
+                                <form method="post" style="display:inline" onsubmit="return confirm('确定删除?')">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="category_id" value="{{ c.category_id }}">
+                                    <button class="btn btn-sm btn-outline-danger">删除</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <form method="post">
+            <div class="modal-header"><h5 class="modal-title">编辑分类</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="category_id" id="edit-id">
+                <div class="mb-2"><label class="form-label">名称</label><input type="text" name="name" id="edit-name" class="form-control" required></div>
+                <div class="mb-2"><label class="form-label">排序</label><input type="number" name="sort_order" id="edit-sort" class="form-control"></div>
+            </div>
+            <div class="modal-footer"><button type="submit" class="btn btn-primary">保存</button></div>
+        </form>
+    </div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function editCat(id, name, sort) {
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-name').value = name;
+    document.getElementById('edit-sort').value = sort;
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+</script>
+{% endblock %}

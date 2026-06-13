@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}订单状态 - {{ table_number }}{% endblock %}
+{% block content %}
+<h3>桌号: {{ table_number }} - 订单状态</h3>
+{% if orders %}
+{% for group in orders %}
+{% set order = group.order %}
+{% set items = group["items"] %}
+<div class="card mt-3 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><strong>订单号:</strong> {{ order.order_number }}</span>
+        <span><strong>时间:</strong> {{ order.created_at[11:19] }}</span>
+        <span><strong>状态:</strong>
+            {% if order.status == '已下单' %}<span class="badge bg-info">已下单</span>
+            {% elif order.status == '制作中' %}<span class="badge bg-warning">制作中</span>
+            {% elif order.status == '已上菜' %}<span class="badge bg-success">已上菜</span>
+            {% endif %}
+        </span>
+        <span><strong>合计:</strong> <span class="text-danger fw-bold fs-5">¥{{ "%.2f"|format(order.total_amount) }}</span></span>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead><tr><th>菜品</th><th>单价</th><th>数量</th><th>小计</th><th>状态</th><th>备注</th></tr></thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.item_name }}</td>
+                    <td>¥{{ "%.2f"|format(item.unit_price) }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>¥{{ "%.2f"|format(item.subtotal) }}</td>
+                    <td>
+                        {% if item.status == '待制作' %}<span class="badge bg-secondary">待制作</span>
+                        {% elif item.status == '制作中' %}<span class="badge bg-warning">制作中</span>
+                        {% elif item.status == '待出餐' %}<span class="badge bg-info">待出餐</span>
+                        {% elif item.status == '已出餐' or item.status == '已完成' %}<span class="badge bg-success">已出餐</span>
+                        {% elif item.status == '已取消' %}<span class="badge bg-danger">已取消</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.remark }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if order.note %}<p class="text-muted"><strong>备注:</strong> {{ order.note }}</p>{% endif %}
+    </div>
+    <div class="card-footer text-end">
+        <a href="{{ url_for('customer.menu') }}" class="btn btn-outline-primary ms-2">加菜</a>
+        {% if loop.last %}
+        <form method="post" action="{{ url_for('customer.pay') }}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="order_id" value="{{ order.order_id }}">
+            <button type="submit" class="btn btn-danger btn-lg ms-2">结账</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="text-center py-5">
+    <h5 class="text-muted">暂无进行中的订单</h5>
+    <a href="{{ url_for('customer.menu') }}" class="btn btn-primary mt-3">去点餐</a>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>setTimeout(function(){ location.reload(); }, 10000);</script>
+{% endblock %}
+
+{% block assistant_widget %}
+{% if session.get('table_id') %}
+<div id="table-id-data" data-table-id="{{ session.get('table_id', '') }}" style="display:none"></div>
+{% include "customer/assistant_modal.html" %}
+{% endif %}
+{% endblock %}

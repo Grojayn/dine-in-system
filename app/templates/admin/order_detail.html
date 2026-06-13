@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}订单详情 - {{ order.order_number }}{% endblock %}
+{% block content %}
+<h3>订单详情: {{ order.order_number }}</h3>
+<div class="row mt-3">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between">
+                <span><strong>桌号:</strong> {{ order.table_number }}</span>
+                <span><strong>状态:</strong>
+                    {% if order.status == '已下单' %}<span class="badge bg-info">已下单</span>
+                    {% elif order.status == '制作中' %}<span class="badge bg-warning">制作中</span>
+                    {% elif order.status == '已上菜' %}<span class="badge bg-success">已上菜</span>
+                    {% else %}<span class="badge bg-secondary">已结账</span>
+                    {% endif %}
+                </span>
+                <span><strong>合计:</strong> ¥{{ "%.2f"|format(order.total_amount) }}</span>
+                <span><strong>时间:</strong> {{ order.created_at }}</span>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead><tr><th>菜品</th><th>单价</th><th>数量</th><th>小计</th><th>制作状态</th><th>备注</th><th>操作</th></tr></thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.item_name }}</td>
+                            <td>¥{{ "%.2f"|format(item.unit_price) }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>¥{{ "%.2f"|format(item.subtotal) }}</td>
+                            <td>
+                                {% if item.status == '待制作' %}<span class="badge bg-secondary">待制作</span>
+                                {% elif item.status == '制作中' %}<span class="badge bg-warning">制作中</span>
+                                {% elif item.status == '已完成' %}<span class="badge bg-success">已完成</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.remark }}</td>
+                            <td>
+                                {% if item.status == '待制作' %}
+                                <form method="post" action="{{ url_for('admin.update_item_status', detail_id=item.detail_id) }}" style="display:inline">
+                                    <input type="hidden" name="status" value="制作中"><button class="btn btn-sm btn-outline-warning">开始</button>
+                                </form>
+                                {% elif item.status == '制作中' %}
+                                <form method="post" action="{{ url_for('admin.update_item_status', detail_id=item.detail_id) }}" style="display:inline">
+                                    <input type="hidden" name="status" value="已完成"><button class="btn btn-sm btn-outline-success">完成</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if order.note %}<p><strong>备注:</strong> {{ order.note }}</p>{% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">返回</a>
+                {% if order.status == '已下单' %}
+                <form method="post" action="{{ url_for('admin.update_order_status', order_id=order.order_id) }}" style="display:inline">
+                    <input type="hidden" name="status" value="制作中"><button class="btn btn-warning">开始制作</button>
+                </form>
+                {% elif order.status == '制作中' %}
+                <form method="post" action="{{ url_for('admin.update_order_status', order_id=order.order_id) }}" style="display:inline">
+                    <input type="hidden" name="status" value="已上菜"><button class="btn btn-success">确认上菜</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

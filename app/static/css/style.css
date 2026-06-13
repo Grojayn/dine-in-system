@@ -1,0 +1,233 @@
+body { background: #f5f5f5; font-family: "Microsoft YaHei", sans-serif; } .navbar-brand { font-weight: bold; } .menu-category { margin-top: 30px; } .menu-item { transition: all 0.2s; } .menu-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); transform: translateY(-2px); } .order-summary { position: sticky; top: 20px; } .status-badge { font-size: 0.9rem; } .hero-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 0; } .feature-icon { font-size: 2.5rem; margin-bottom: 15px; color: #667eea; }
+
+/* 智能点餐助手 — 聊天面板样式 */
+#assistant-widget { font-family: "Microsoft YaHei", sans-serif; }
+.assistant-bubble {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  width: 56px; height: 56px; border-radius: 50%; border: none;
+  background: #667eea; color: #fff; font-size: 24px;
+  cursor: pointer; box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+  transition: transform 0.2s;
+}
+.assistant-bubble:hover { transform: scale(1.1); }
+.assistant-panel {
+  position: fixed; bottom: 90px; right: 24px; z-index: 9999;
+  width: 360px; height: 500px; background: #fff;
+  border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column; overflow: hidden;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.assistant-panel.hidden { opacity: 0; transform: scale(0.9); pointer-events: none; }
+.assistant-header {
+  background: #667eea; color: #fff; padding: 12px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: bold; font-size: 15px;
+}
+.assistant-close-btn {
+  background: none; border: none; color: #fff; font-size: 16px;
+  cursor: pointer; padding: 0 4px;
+}
+.assistant-messages {
+  flex: 1; overflow-y: auto; padding: 12px; background: #f8f9fa;
+}
+.assistant-msg { margin-bottom: 10px; display: flex; }
+.assistant-msg-right { justify-content: flex-end; }
+.assistant-msg-left { justify-content: flex-start; }
+.assistant-msg-content {
+  max-width: 80%; padding: 8px 14px; border-radius: 12px;
+  font-size: 14px; line-height: 1.5; word-break: break-word;
+}
+.assistant-msg-right .assistant-msg-content {
+  background: #667eea; color: #fff; border-bottom-right-radius: 4px;
+}
+.assistant-msg-left .assistant-msg-content {
+  background: #fff; color: #333; border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.assistant-input-area {
+  display: flex; padding: 10px 12px; border-top: 1px solid #eee;
+  background: #fff; gap: 8px;
+}
+.assistant-input {
+  flex: 1; border: 1px solid #ddd; border-radius: 20px;
+  padding: 8px 14px; font-size: 14px; outline: none;
+}
+.assistant-input:focus { border-color: #667eea; }
+.assistant-send-btn {
+  background: #667eea; color: #fff; border: none;
+  border-radius: 20px; padding: 8px 18px; font-size: 14px;
+  cursor: pointer; white-space: nowrap;
+}
+.assistant-send-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ====== 后厨助手 ====== */
+#kitchen-toggle {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #1a1a2e;
+    color: #fff;
+    border: 2px solid #e94560;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+#kitchen-toggle:hover { transform: scale(1.1); }
+
+#kitchen-panel {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    width: 380px;
+    height: 520px;
+    background: #16213e;
+    border: 1px solid #e94560;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    overflow: hidden;
+}
+#kitchen-panel.hidden { display: none; }
+
+#kitchen-header {
+    background: #0f3460;
+    color: #fff;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    border-bottom: 1px solid #e94560;
+}
+#kitchen-header span { font-size: 15px; }
+#kitchen-close {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 20px;
+    cursor: pointer;
+}
+#kitchen-close:hover { color: #e94560; }
+
+#kitchen-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.kitchen-msg { max-width: 80%; margin-bottom: 4px; }
+.kitchen-msg-left { align-self: flex-start; }
+.kitchen-msg-right { align-self: flex-end; }
+
+.kitchen-msg-content {
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.kitchen-msg-left .kitchen-msg-content {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    border-bottom-left-radius: 4px;
+}
+.kitchen-msg-right .kitchen-msg-content {
+    background: #e94560;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+#kitchen-input-area {
+    display: flex;
+    padding: 10px 12px;
+    border-top: 1px solid #333;
+    background: #0f3460;
+    gap: 8px;
+}
+#kitchen-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #333;
+    border-radius: 20px;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-size: 14px;
+    outline: none;
+}
+#kitchen-input:focus { border-color: #e94560; }
+#kitchen-input::placeholder { color: #666; }
+
+#kitchen-send {
+    padding: 8px 16px;
+    background: #e94560;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+}
+#kitchen-send:disabled { opacity: 0.5; cursor: not-allowed; }
+#kitchen-send:hover:not(:disabled) { background: #d63851; }
+
+#kitchen-messages::-webkit-scrollbar { width: 4px; }
+#kitchen-messages::-webkit-scrollbar-thumb { background: #e94560; border-radius: 2px; }
+
+/* ====== 出餐通知弹窗 ====== */
+.dish-notification {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    background: #4CAF50;
+    color: #fff;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    z-index: 2000;
+    font-size: 16px;
+    font-weight: bold;
+    animation: dish-notification-in 0.3s ease-out;
+    max-width: 300px;
+}
+.dish-notification-hide {
+    opacity: 0;
+    transform: translateX(100px);
+    transition: all 0.5s ease;
+}
+@keyframes dish-notification-in {
+    from { opacity: 0; transform: translateX(100px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* ====== 库存标签 ====== */
+.stock-label { color: #666; font-weight: normal; }
+.stock-low { color: #dc3545; font-weight: bold; }
+
+/* ====== 购物车 ====== */
+.cart-panel { position: sticky; top: 20px; }
+.cart-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+.cart-item-name { flex: 1; font-size: 14px; }
+.cart-item-price { color: #dc3545; font-weight: bold; margin: 0 8px; }
+.cart-qty-btn { width: 28px; height: 28px; border: 1px solid #ddd; border-radius: 50%; background: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; line-height: 1; }
+.cart-qty-btn:hover { background: #f0f0f0; }
+.cart-qty-display { display: inline-block; width: 30px; text-align: center; font-size: 15px; }
+.cart-remove-btn { background: none; border: none; color: #999; cursor: pointer; font-size: 18px; margin-left: 8px; }
+.cart-remove-btn:hover { color: #dc3545; }
+.cart-empty { text-align: center; color: #999; padding: 40px 0; }
+.cart-total { font-size: 20px; font-weight: bold; color: #dc3545; }
+.add-cart-btn { font-size: 13px; padding: 2px 12px; }
+.sold-out-tag { color: #dc3545; font-weight: bold; font-size: 13px; }

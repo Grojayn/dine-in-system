@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block title %}菜单 - {{ table_number }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>桌号: {{ table_number }}</h3>
+    <div>
+        <a href="{{ url_for('customer.order_status') }}" class="btn btn-outline-success me-2">查看订单</a>
+        <a href="{{ url_for('customer.reset') }}" class="btn btn-outline-secondary">换桌</a>
+    </div>
+</div>
+<form method="post" action="{{ url_for('customer.order') }}" id="order-form" onsubmit="return submitOrder()">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<div class="row">
+    <div class="col-md-8">
+        {% for cat in categories %}
+            <div class="menu-category">
+                <h5 class="border-bottom pb-2 text-primary">{{ cat.name }}</h5>
+                <div class="row">
+                    {% for item in menu_items %}
+                        {% if item.category_id == cat.category_id %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card menu-item h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="card-title">{{ item.name }}
+                                            {% if item.is_recommended %}<span class="badge bg-warning text-dark ms-1">推荐</span>{% endif %}
+                                        </h6>
+                                        <span class="text-danger fw-bold">¥{{ "%.2f"|format(item.price) }}</span>
+                                    </div>
+                                    <p class="card-text small text-muted">{{ item.description }}</p>
+                                    {% if item.stock is defined %}
+                                    <p class="card-text small">
+                                        {% if item.stock <= 0 %}
+                                        <span class="stock-low">已售罄</span>
+                                        {% else %}
+                                        <span class="stock-label {% if item.stock < 10 %}stock-low{% endif %}">
+                                            库存：{{ item.stock }}
+                                        </span>
+                                        {% endif %}
+                                    </p>
+                                    {% endif %}
+                                    <button type="button" class="btn btn-outline-primary btn-sm add-cart-btn"
+                                            data-id="{{ item.item_id }}"
+                                            data-name="{{ item.name }}"
+                                            data-price="{{ item.price }}"
+                                            data-stock="{{ item.stock }}"
+                                            {% if item.stock <= 0 %}disabled{% endif %}>
+                                        {% if item.stock <= 0 %}已售罄{% else %}加入购物车{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="col-md-4">
+        <div class="card order-summary shadow cart-panel">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">购物车</h5>
+                <button type="button" class="btn btn-sm btn-outline-light" onclick="clearCart()">清空</button>
+            </div>
+            <div class="card-body" id="cart-body">
+                <div class="cart-empty" id="cart-empty">
+                    <p>购物车是空的</p>
+                    <p class="small">点击菜品下方的「加入购物车」开始点餐</p>
+                </div>
+                <div id="cart-items"></div>
+                <hr id="cart-divider" style="display:none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-bold">合计</span>
+                    <span class="cart-total" id="cart-total">¥0.00</span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">整单备注</label>
+                    <textarea name="note" class="form-control" rows="2" placeholder="如有特殊要求请填写"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success btn-lg w-100" id="submit-btn" disabled>确认下单</button>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+var cartItems = [];
+
+function findCartItem(id) {
+    for (var i = 0; i < cartItems.length; i++) {
+        if (cartItems[i].id === id) return i;
+    }
+    return -1;
+}
+
+function renderCart() {
+    var container = document.getElementById('cart-items');
+    var emptyHint = document.getElementById('cart-empty');
+    var divider = document.getElementById('cart-divider');
+    var totalEl = document.getElementById('cart-total');
+    var submitBtn = document.getElementById('submit-btn');
+
+    if (cartItems.length === 0) {
+        container.innerHTML = '';
+        emptyHint.style.display = '';
+        divider.style.display = 'none';
+        totalEl.textContent = '¥0.00';
+        submitBtn.disabled = true;
+        return;
+    }
+
+    emptyHint.style.display = 'none';
+    divider.style.display = '';
+    submitBtn.disabled = false;
+
+    var html = '';
+    var total = 0;
+    for (var i = 0; i < cartItems.length; i++) {
+        var item = cartItems[i];
+        var subtotal = item.price * item.qty;
+        total += subtotal;
+        html += '<div class="cart-item">';
+        html += '<span class="cart-item-name">' + escapeHtml(item.name) + '</span>';
+        html += '<span class="cart-item-price">¥' + item.price.toFixed(2) + '</span>';
+        html += '<button type="button" class="cart-qty-btn" onclick="changeQty(' + item.id + ', -1)">−</button>';
+        html += '<span class="cart-qty-display">' + item.qty + '</span>';
+        html += '<button type="button" class="cart-qty-btn" onclick="changeQty(' + item.id + ', 1)">+</button>';
+        html += '<span style="margin-left:8px;font-size:13px;color:#dc3545">¥' + subtotal.toFixed(2) + '</span>';
+        html += '<button type="button" class="cart-remove-btn" onclick="removeItem(' + item.id + ')" title="删除">&times;</button>';
+        html += '</div>';
+    }
+    container.innerHTML = html;
+    totalEl.textContent = '¥' + total.toFixed(2);
+}
+
+function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
+function addToCart(id, name, price, stock) {
+    if (stock <= 0) return;
+    var idx = findCartItem(id);
+    if (idx >= 0) {
+        if (cartItems[idx].qty < stock) {
+            cartItems[idx].qty++;
+        }
+    } else {
+        cartItems.push({ id: id, name: name, price: price, qty: 1, remark: '', maxStock: stock });
+    }
+    renderCart();
+}
+
+function changeQty(id, delta) {
+    var idx = findCartItem(id);
+    if (idx < 0) return;
+    cartItems[idx].qty += delta;
+    if (cartItems[idx].qty <= 0) {
+        cartItems.splice(idx, 1);
+    }
+    renderCart();
+}
+
+function removeItem(id) {
+    var idx = findCartItem(id);
+    if (idx >= 0) {
+        cartItems.splice(idx, 1);
+    }
+    renderCart();
+}
+
+function clearCart() {
+    cartItems = [];
+    renderCart();
+}
+
+function submitOrder() {
+    if (cartItems.length === 0) {
+        alert('请至少选择一道菜品');
+        return false;
+    }
+    var form = document.getElementById('order-form');
+    // 清除旧的动态 input
+    form.querySelectorAll('.cart-dynamic-input').forEach(function(el) { el.remove(); });
+
+    for (var i = 0; i < cartItems.length; i++) {
+        var item = cartItems[i];
+        var html = '<input type="hidden" name="item_id[]" value="' + item.id + '" class="cart-dynamic-input">';
+        html += '<input type="hidden" name="quantity[]" value="' + item.qty + '" class="cart-dynamic-input">';
+        html += '<input type="hidden" name="remark[]" value="' + (item.remark || '') + '" class="cart-dynamic-input">';
+        form.insertAdjacentHTML('beforeend', html);
+    }
+    return true;
+}
+
+// 绑定"加入购物车"按钮
+document.querySelectorAll('.add-cart-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var id = parseInt(this.dataset.id);
+        var name = this.dataset.name;
+        var price = parseFloat(this.dataset.price);
+        var stock = parseInt(this.dataset.stock);
+        addToCart(id, name, price, stock);
+    });
+});
+</script>
+{% endblock %}
+
+{% block assistant_widget %}
+{% if session.get('table_id') %}
+<div id="table-id-data" data-table-id="{{ session.get('table_id', '') }}" style="display:none"></div>
+{% include "customer/assistant_modal.html" %}
+{% endif %}
+{% endblock %}
