@@ -202,6 +202,21 @@ def create_app():
     def inject_csrf():
         return {'csrf_token': flask_session.get('_csrf_token', '')}
 
+    # WSGI 中间件：读取 Nginx 的 X-Script-Name 头，使 url_for() 自动添加前缀
+    class _ReverseProxied:
+        def __init__(self, app):
+            self.app = app
+        def __call__(self, environ, start_response):
+            script_name = environ.get('HTTP_X_SCRIPT_NAME', '')
+            if script_name:
+                environ['SCRIPT_NAME'] = script_name
+                path = environ['PATH_INFO']
+                if path.startswith(script_name):
+                    environ['PATH_INFO'] = path[len(script_name):]
+            return self.app(environ, start_response)
+
+    app.wsgi_app = _ReverseProxied(app.wsgi_app)
+
     from app.routes import customer, admin, assistant, kitchen
     app.register_blueprint(customer.bp)
     app.register_blueprint(admin.bp)
